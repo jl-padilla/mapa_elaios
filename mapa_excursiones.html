@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mapa de excursiones ELAIOS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f5;
+    color: #263238;
+}
+
+.marker-elaios {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #7b2cbf;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35);
+}
+
+.marker-elaios img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.entidad-header {
+    display: grid;
+    grid-template-columns: 260px 1fr 320px;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 28px;
+    background: white;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.entidad-header-imagen {
+    background:
+        linear-gradient(90deg, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.92) 48%, rgba(255,255,255,0.30) 100%),
+        url("assets/cabecera/elaios_montana.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+.entidad-logo img {
+    max-width: 230px;
+    height: auto;
+}
+
+.entidad-titulo h1 {
+    margin: 0;
+    font-size: 34px;
+    color: #0f3d2e;
+}
+
+.entidad-titulo p {
+    margin: 6px 0 0;
+    font-size: 18px;
+    color: #667085;
+}
+
+.entidad-contacto {
+    border-left: 2px solid #7b2cbf;
+    padding-left: 22px;
+    font-size: 15px;
+    line-height: 1.7;
+    background: rgba(255,255,255,0.75);
+    border-radius: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.entidad-contacto a {
+    color: #0f3d2e;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.entidad-contacto a:hover {
+    text-decoration: underline;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px;
+}
+
+.stat {
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 1px 5px rgba(0,0,0,.12);
+}
+
+.stat strong {
+    display: block;
+    font-size: 25px;
+    color: #1f6f43;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    height: 720px;
+}
+
+aside {
+    background: white;
+    padding: 16px;
+    overflow: auto;
+    border-right: 1px solid #ddd;
+}
+
+#map {
+    height: 720px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: #1f6f43;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.list-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.list-item:hover {
+    background: #eef8f1;
+}
+
+.list-item strong {
+    color: #1f6f43;
+}
+
+.popup h3 {
+    margin: 0 0 8px;
+    color: #1f6f43;
+}
+
+.meta {
+    margin: 4px 0;
+}
+
+.logos img {
+    height: 38px;
+    margin: 6px 8px 6px 0;
+    vertical-align: middle;
+}
+
+.gallery {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    max-width: 360px;
+    margin-top: 8px;
+}
+
+.gallery img {
+    width: 105px;
+    height: 78px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.track {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: #1f6f43;
+    color: white !important;
+    text-decoration: none;
+    border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+    body {
+        font-size: 15px;
+    }
+        
+    .entidad-header {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .entidad-logo img {
+        max-width: 180px;
+    }
+
+    .entidad-titulo h1 {
+        font-size: 24px;
+    }
+
+    .entidad-contacto {
+        font-size: 14px;
+        border-left: 0;
+        border-top: 2px solid #7b2cbf;
+        padding-left: 0;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .stat {
+        padding: 10px;
+    }
+
+    .stat strong {
+        font-size: 21px;
+    }
+
+    .layout {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+    }
+
+    aside {
+        max-height: 360px;
+        overflow: auto;
+        border-right: 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+    #map {
+        height: 70vh;
+        min-height: 420px;
+        width: 100%;
+    }
+
+    .gallery {
+        max-width: 280px;
+    }
+
+    .gallery img {
+        width: 88px;
+        height: 66px;
+    }
+
+    .leaflet-popup-content {
+        max-width: 280px;
+    }
+    
+}
+</style>
+</head>
+
+<body>
+
+<header class="entidad-header entidad-header-imagen">
+
+    <div class="entidad-logo">
+        <img src="assets/logos/elaios.png" alt="Logo Elaios Asociación Deportiva LGTBI+">
+    </div>
+
+    <div class="entidad-titulo">
+        <h1>Mapa de excursiones</h1>
+        <p>Memoria interactiva de actividades realizadas por la asociación</p>
+    </div>
+
+    <div class="entidad-contacto">
+        <div>🌐 <a href="https://www.elaios.org/" target="_blank">www.elaios.org</a></div>
+        <div>📍 Zaragoza, Aragón</div>
+        <div>🏳️‍🌈 Asociación Deportiva LGTBI+</div>
+        <div>🥾 Deporte, naturaleza y diversidad</div>
+    </div>
+
+</header>
+
+<section class="stats">
+    <div class="stat"><strong id="stat-exc">0</strong>Excursiones</div>
+    <div class="stat"><strong id="stat-part">0</strong>Participantes</div>
+    <div class="stat"><strong id="stat-anios">0</strong>Años</div>
+    <div class="stat"><strong id="stat-prov">0</strong>Provincias</div>
+</section>
+
+<div class="layout">
+    <aside>
+        <label>Buscar excursión</label>
+        <input id="buscar" placeholder="Ej. Moncayo, Gratal, Broto...">
+
+        <label>Año</label>
+        <select id="filtro-anio"><option value="">Todos</option></select>
+
+        <label>Provincia</label>
+        <select id="filtro-provincia"><option value="">Todas</option></select>
+
+        <label>Tipo</label>
+        <select id="filtro-tipo"><option value="">Todos</option></select>
+
+        <label>Dificultad</label>
+        <select id="filtro-dificultad"><option value="">Todas</option></select>
+
+        <label>Asociación</label>
+        <select id="filtro-logo"><option value="">Todas</option></select>
+
+        <button id="limpiar">Limpiar filtros</button>
+
+        <h3 id="contador"></h3>
+        <div id="lista"></div>
+    </aside>
+
+    <main id="map"></main>
+</div>
+
+<script>
+const excursiones = [{"id": "2025_01_01", "fecha": "2025_01_01", "anio": "2025", "nombre": "Torrollones de la Gabarda", "poblacion": "Grañen", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/rutas-senderismo/torrollones-de-la-gabarda-circular-37581955", "lat": 41.9422982, "lon": -0.3729445, "logos": ["assets/logos/elaios.png"], "fotos": ["assets/excursiones/2025_01_01/foto1.jpeg"]}, {"id": "2025_02_01", "fecha": "2025_02_01", "anio": "2025", "nombre": "Arco de Gratal - Las Calmas", "poblacion": "Monrepos", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/rutas-senderismo/arguis-arco-de-gratal-por-las-calmas-y-mas-165172877", "lat": 42.3283125, "lon": -0.4178397, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_03_01", "fecha": "2025_03_01", "anio": "2025", "nombre": "Deltebre-Sant Jaume d’Enveja-La Punta De La Banya_x0002_Eucaliptus-Els Muntells-Sant Jaume D’Enveja-Deltebre. (Panteres Grogues)", "poblacion": "Deltebre", "provincia": "Tarragona", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/rutas-mountain-bike/deltebre-sant-jaume-denveja-la-punta-de-la-banya-eucaliptus-els-muntells-sant-jaume-denveja-deltebr-28036377", "lat": 40.7198717, "lon": 0.6951499, "logos": ["assets/logos/elaios.png", "assets/logos/panteres_grogues.png"], "fotos": []}, {"id": "2025_03_01", "fecha": "2025_03_01", "anio": "2025", "nombre": "Ecomuseo-Paseo fluvial del Delta-Arrozales-Dunas de Riomar-Balsa del Garxal-Mirador de Zigurat-Barracas tradicionales_x0002_Desembocadura (Panteres Grogues)", "poblacion": "Deltebre", "provincia": "Tarragona", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://ca.wikiloc.com/rutes-cicloturisme/02-pnde-b-ecomuseu-desembocadura-163742410", "lat": 40.7198717, "lon": 0.6951499, "logos": ["assets/logos/elaios.png", "assets/logos/panteres_grogues.png"], "fotos": []}, {"id": "2025_04_01", "fecha": "2025_04_01", "anio": "2025", "nombre": "Uña, Las Catedrales, La Raya, El Escalerón (Dracs)", "poblacion": "Uña", "provincia": "Cuenca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://ca.wikiloc.com/rutes-senderisme/una-las-catedrales-la-raya-el-escaleron-una-cuenca-97389511?utm_medium=app&utm_campaign=share&utm_source=1919134", "lat": 40.2232186, "lon": -1.9812516, "logos": ["assets/logos/elaios.png", "assets/logos/dracs.png"], "fotos": []}, {"id": "2025_04_01", "fecha": "2025_04_01", "anio": "2025", "nombre": "Nacimiento del río Cuervo y subida a la muela de San Felipe. (Dracs)", "poblacion": "Uña", "provincia": "Cuenca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://gl.wikiloc.com/rutas-sendeirismo/nacimiento-del-rio-cuervo-y-subida-a-la-muela-de-san-felipe-vuelta-por-mirador-del-cuervo-pr-cu-78-105693158", "lat": 40.2232186, "lon": -1.9812516, "logos": ["assets/logos/elaios.png", "assets/logos/dracs.png"], "fotos": []}, {"id": "2025_05_01", "fecha": "2025_05_01", "anio": "2025", "nombre": "Camino Natural de Castejón de Monegros", "poblacion": "Castejon de Monegros", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://emea01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fes.wikiloc.com%2Frutas-senderismo%2Fcamino-natural-de-castejon-de-monegros-recorrido-ciruclar-212517293&data=05%7C02%7C%7Cbe2809980ae34569333408dd8f2962cb%7C84df9e7fe9f640afb435aaaaaaaaaaaa%7C1%7C0%7C638824130090556107%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=eRpxfkjHv5f2Z3qL6onvNFm5ZKvRh9%2FsXEbkSkKIAx0%3D&reserved=0", "lat": 41.6174377, "lon": -0.2445868, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_06_01", "fecha": "2025_06_01", "anio": "2025", "nombre": "Ascensión al Moncayo o pico de San Miguel", "poblacion": "Santuario", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/rutas-senderismo/circular-sierra-del-moncayo-santuario-moncayo-collado-bellido-santuario-gr-86-y-gr-90-1-14260797", "lat": 41.7904033, "lon": -1.8201557, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_07_01", "fecha": "2025_07_01", "anio": "2025", "nombre": "Viaje a Escocia", "poblacion": "", "provincia": "Zaragoza", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/wikiloc/map.do?q=Viaje%20a%20Escocia", "lat": 57.6431093, "lon": -9.9612854, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_07_01", "fecha": "2025_07_01", "anio": "2025", "nombre": "Dedo de Yenefrito", "poblacion": "Panticosa", "provincia": "Escocia", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://gl.wikiloc.com/rutas-sendeirismo/panticosa-dedo-de-yenefrito-pr-hu-95-pista-del-verde-cascada-de-forronias-panticosa-133316057", "lat": 42.7427609, "lon": -0.3285064, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_08_01", "fecha": "2025_08_01", "anio": "2025", "nombre": "Pico Culfreda  (Panteres Grogues)", "poblacion": "Refugio Viados", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/rutas-alpinismo/culfreda-nw-3-034-m-desde-viados-139737580", "lat": 42.660696, "lon": 0.374645, "logos": ["assets/logos/elaios.png", "assets/logos/panteres_grogues.png"], "fotos": []}, {"id": "2025_08_01", "fecha": "2025_08_01", "anio": "2025", "nombre": "Circular Ref. Viadós – Bordas de Lisier – Espital de Chistén (Panteres Grogues)", "poblacion": "Refugio Viados", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://es.wikiloc.com/rutas-senderismo/pista-viados-cruce-viados-bordas-de-licierte-ida-y-vuelta-195520530", "lat": 42.660696, "lon": 0.374645, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_10_01", "fecha": "2025_10_01", "anio": "2025", "nombre": "Despoblado de Peña (RGP)", "poblacion": "Aibar", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://gl.wikiloc.com/rutas-sendeirismo/ermita-san-zoilocaseda-pena-ermita-san-zoilo-86809531", "lat": 42.5926297, "lon": -1.3724192, "logos": ["assets/logos/elaios.png", "assets/logos/rgp.png"], "fotos": []}, {"id": "2025_10_01", "fecha": "2025_10_01", "anio": "2025", "nombre": "Sierra de Leyre: Paso del Oso y cima del Castellar (RGP)", "poblacion": "Aibar", "provincia": "Navarra", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://gl.wikiloc.com/rutas-sendeirismo/circular-por-la-sierra-de-leyre-12790658", "lat": 42.5926297, "lon": -1.3724192, "logos": ["assets/logos/elaios.png", "assets/logos/rgp.png"], "fotos": []}, {"id": "2025_10_01", "fecha": "2025_10_01", "anio": "2025", "nombre": "Peña Canciás", "poblacion": "Laguarta", "provincia": "Navarra", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://loc.wiki/t/2334169?h=6lpn4ldaz8&wa=sd&la=es", "lat": 42.4132913, "lon": -0.1197907, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_11_01", "fecha": "2025_11_01", "anio": "2025", "nombre": "Valle de Sorrosal y refugio Planas d'Abozo", "poblacion": "Linás de Broto", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://loc.wiki/t/218694610?h=6lpn4ldaz8&wa=sd&la=es", "lat": 42.6181914, "lon": -0.1718335, "logos": ["assets/logos/elaios.png"], "fotos": []}, {"id": "2025_11_01", "fecha": "2025_11_01", "anio": "2025", "nombre": "Circular Tozal del Cebollar y Sierra Casa", "poblacion": "Linás de Broto", "provincia": "Huesca", "tipo": "excursion", "dificultad": "baja", "participantes": "25", "track": "https://loc.wiki/t/11281634?h=6lpn4ldaz8&wa=sd&la=es", "lat": 42.6181914, "lon": -0.1718335, "logos": ["assets/logos/elaios.png"], "fotos": []}];
+
+const map = L.map("map");
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap"
+}).addTo(map);
+
+const markersLayer = L.layerGroup().addTo(map);
+let markerById = {};
+
+const iconoElaios = L.divIcon({
+    html: `
+        <div class="marker-elaios">
+            <img src="assets/logos/elaios.png" alt="ELAIOS">
+        </div>
+    `,
+    className: "",
+    iconSize: [46, 46],
+    iconAnchor: [23, 46],
+    popupAnchor: [0, -40]
+});
+
+function unique(arr) {
+    return [...new Set(arr.filter(Boolean))].sort();
+}
+
+function basename(path) {
+    if (!path) return "";
+    return path.split("/").pop().split("?")[0].replace(/\.(png|jpg|jpeg|webp|gif)$/i, "");
+}
+
+function nombreBonitoLogo(path) {
+    return basename(path).replaceAll("_", " ").toUpperCase();
+}
+
+function fillSelect(id, values) {
+    const sel = document.getElementById(id);
+    values.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        sel.appendChild(opt);
+    });
+}
+
+function popupHtml(e) {
+    const logos = (e.logos || [])
+        .map(src => `<img src="${src}" title="${nombreBonitoLogo(src)}" onerror="this.style.display='none'">`)
+        .join("");
+
+    const fotos = (e.fotos || [])
+        .map(src => `<a href="${src}" target="_blank"><img src="${src}" onerror="this.style.display='none'"></a>`)
+        .join("");
+
+    const bloqueLogos = logos ? `<div class="logos">${logos}</div>` : "";
+    const bloqueFotos = fotos ? `<div class="gallery">${fotos}</div>` : "<p><em>Sin fotos cargadas</em></p>";
+    const track = e.track ? `<a class="track" href="${e.track}" target="_blank">Ver track</a>` : "";
+
+    return `
+    <div class="popup">
+        <h3>${e.nombre}</h3>
+        <div class="meta"><b>Fecha:</b> ${e.fecha || "-"}</div>
+        <div class="meta"><b>Población:</b> ${e.poblacion || "-"}</div>
+        <div class="meta"><b>Provincia:</b> ${e.provincia || "-"}</div>
+        <div class="meta"><b>Participantes:</b> ${e.participantes || "-"}</div>
+        <div class="meta"><b>Tipo:</b> ${e.tipo || "-"}</div>
+        <div class="meta"><b>Dificultad:</b> ${e.dificultad || "-"}</div>
+        ${bloqueLogos}
+        ${bloqueFotos}
+        ${track}
+    </div>`;
+}
+
+function aplicarFiltros() {
+    const q = document.getElementById("buscar").value.toLowerCase().trim();
+    const anio = document.getElementById("filtro-anio").value;
+    const provincia = document.getElementById("filtro-provincia").value;
+    const tipo = document.getElementById("filtro-tipo").value;
+    const dificultad = document.getElementById("filtro-dificultad").value;
+    const logo = document.getElementById("filtro-logo").value;
+
+    return excursiones.filter(e => {
+        const texto = `${e.nombre} ${e.poblacion} ${e.provincia} ${e.tipo} ${e.dificultad}`.toLowerCase();
+        const logos = (e.logos || []).map(basename);
+
+        return (!q || texto.includes(q)) &&
+               (!anio || e.anio == anio) &&
+               (!provincia || e.provincia == provincia) &&
+               (!tipo || e.tipo == tipo) &&
+               (!dificultad || e.dificultad == dificultad) &&
+               (!logo || logos.includes(logo));
+    });
+}
+
+function pintar() {
+    const datos = aplicarFiltros();
+    markersLayer.clearLayers();
+    markerById = {};
+
+    const bounds = [];
+
+    datos.forEach(e => {
+        const marker = L.marker([e.lat, e.lon], {icon: iconoElaios})
+            .bindPopup(popupHtml(e), {maxWidth: 420})
+            .bindTooltip(e.nombre);
+
+        marker.addTo(markersLayer);
+        markerById[e.id] = marker;
+        bounds.push([e.lat, e.lon]);
+    });
+
+    if (bounds.length) {
+        map.fitBounds(bounds, {padding: [30, 30]});
+    } else {
+        map.setView([41.65, -0.9], 7);
+    }
+
+    document.getElementById("contador").textContent = `${datos.length} excursiones visibles`;
+
+    document.getElementById("lista").innerHTML = datos.map(e => `
+        <div class="list-item" data-id="${e.id}">
+            <strong>${e.nombre}</strong><br>
+            <small>${e.fecha || ""} · ${e.poblacion || ""} · ${e.participantes || "-"} participantes</small>
+        </div>
+    `).join("");
+
+    document.querySelectorAll(".list-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const m = markerById[item.dataset.id];
+            if (m) {
+                map.setView(m.getLatLng(), 13);
+                m.openPopup();
+            }
+        });
+    });
+}
+
+function inicializar() {
+    fillSelect("filtro-anio", unique(excursiones.map(e => e.anio)));
+    fillSelect("filtro-provincia", unique(excursiones.map(e => e.provincia)));
+    fillSelect("filtro-tipo", unique(excursiones.map(e => e.tipo)));
+    fillSelect("filtro-dificultad", unique(excursiones.map(e => e.dificultad)));
+    fillSelect("filtro-logo", unique(excursiones.flatMap(e => (e.logos || []).map(basename))));
+
+    document.getElementById("stat-exc").textContent = excursiones.length;
+    document.getElementById("stat-part").textContent =
+        excursiones.reduce((s, e) => s + (parseInt(e.participantes) || 0), 0);
+    document.getElementById("stat-anios").textContent = unique(excursiones.map(e => e.anio)).length;
+    document.getElementById("stat-prov").textContent = unique(excursiones.map(e => e.provincia)).length;
+
+    ["buscar", "filtro-anio", "filtro-provincia", "filtro-tipo", "filtro-dificultad", "filtro-logo"]
+        .forEach(id => document.getElementById(id).addEventListener("input", pintar));
+
+    document.getElementById("limpiar").addEventListener("click", () => {
+        document.getElementById("buscar").value = "";
+        ["filtro-anio", "filtro-provincia", "filtro-tipo", "filtro-dificultad", "filtro-logo"]
+            .forEach(id => document.getElementById(id).value = "");
+        pintar();
+    });
+
+    pintar();
+}
+
+inicializar();
+</script>
+
+</body>
+</html>
