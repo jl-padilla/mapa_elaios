@@ -457,7 +457,7 @@ button {{
     <div class="entidad-contacto">
         <div>🌐 <a href="https://www.elaios.org/" target="_blank">www.elaios.org</a></div>
         <div>✉️ montana@elaios.org</div>
-        <div>📍 Zaragoza, Aragón</div>
+        <div>📍 Aragón</div>
         <div>🏳️‍🌈 Asociación Deportiva LGTBI+</div>
     </div>
 
