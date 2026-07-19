@@ -16,7 +16,7 @@ ASSETS_DIR = BASE_DIR / "assets"
 LOGOS_DIR = ASSETS_DIR / "logos"
 FOTOS_DIR = ASSETS_DIR / "excursiones"
 
-OUTPUT_HTML = BASE_DIR / "mapa_excursiones.html"
+OUTPUT_HTML = BASE_DIR / "index.html"
 
 EXTENSIONES_IMAGEN = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
@@ -106,7 +106,7 @@ for _, row in df.iterrows():
     provincia = limpiar_texto(valor_columna(row, ["PROVINCIA", "Provincia"]))
     tipo = limpiar_texto(valor_columna(row, ["TIPO", "Tipo", "TIPO_ACTIVIDAD"]))
     dificultad = limpiar_texto(valor_columna(row, ["DIFICULTAD", "Dificultad"]))
-    participantes = limpiar_texto(valor_columna(row, ["PARTICIPANTES", "Participantes", "Nº participantes", "N participantes"]))
+
 
     track_confirmado = limpiar_texto(valor_columna(row, ["Track_confirmado", "TRACK_CONFIRMADO", "track_confirmado"]))
     track_sugerido = limpiar_texto(valor_columna(row, ["Track_Wikiloc_sugerido", "TRACK_SUGERIDO", "Track_sugerido"]))
@@ -138,7 +138,6 @@ for _, row in df.iterrows():
         "provincia": provincia,
         "tipo": tipo,
         "dificultad": dificultad,
-        "participantes": participantes,
         "track": track,
         "lat": lat,
         "lon": lon,
@@ -247,7 +246,7 @@ body {{
 
 .stats {{
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     padding: 16px;
 }}
@@ -457,16 +456,15 @@ button {{
 
     <div class="entidad-contacto">
         <div>🌐 <a href="https://www.elaios.org/" target="_blank">www.elaios.org</a></div>
+        <div>✉️ montana@elaios.org</div>
         <div>📍 Zaragoza, Aragón</div>
         <div>🏳️‍🌈 Asociación Deportiva LGTBI+</div>
-        <div>🥾 Deporte, naturaleza y diversidad</div>
     </div>
 
 </header>
 
 <section class="stats">
     <div class="stat"><strong id="stat-exc">0</strong>Excursiones</div>
-    <div class="stat"><strong id="stat-part">0</strong>Participantes</div>
     <div class="stat"><strong id="stat-anios">0</strong>Años</div>
     <div class="stat"><strong id="stat-prov">0</strong>Provincias</div>
 </section>
@@ -567,7 +565,6 @@ function popupHtml(e) {{
         <div class="meta"><b>Fecha:</b> ${{e.fecha || "-"}}</div>
         <div class="meta"><b>Población:</b> ${{e.poblacion || "-"}}</div>
         <div class="meta"><b>Provincia:</b> ${{e.provincia || "-"}}</div>
-        <div class="meta"><b>Participantes:</b> ${{e.participantes || "-"}}</div>
         <div class="meta"><b>Tipo:</b> ${{e.tipo || "-"}}</div>
         <div class="meta"><b>Dificultad:</b> ${{e.dificultad || "-"}}</div>
         ${{bloqueLogos}}
@@ -625,7 +622,7 @@ function pintar() {{
     document.getElementById("lista").innerHTML = datos.map(e => `
         <div class="list-item" data-id="${{e.id}}">
             <strong>${{e.nombre}}</strong><br>
-            <small>${{e.fecha || ""}} · ${{e.poblacion || ""}} · ${{e.participantes || "-"}} participantes</small>
+            <small>${{e.fecha || ""}} · ${{e.poblacion || ""}} </small>
         </div>
     `).join("");
 
@@ -648,8 +645,6 @@ function inicializar() {{
     fillSelect("filtro-logo", unique(excursiones.flatMap(e => (e.logos || []).map(basename))));
 
     document.getElementById("stat-exc").textContent = excursiones.length;
-    document.getElementById("stat-part").textContent =
-        excursiones.reduce((s, e) => s + (parseInt(e.participantes) || 0), 0);
     document.getElementById("stat-anios").textContent = unique(excursiones.map(e => e.anio)).length;
     document.getElementById("stat-prov").textContent = unique(excursiones.map(e => e.provincia)).length;
 
