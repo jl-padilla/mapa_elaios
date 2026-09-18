@@ -127,12 +127,25 @@ for _, row in df.iterrows():
         print(f"⚠️ Coordenadas no válidas en: {nombre}")
         continue
 
-    anio = fecha[:4] if fecha else ""
+    anio = limpiar_texto(
+        valor_columna(row, ["Año", "AÑO", "ANIO", "anio"])
+    )
+
+    # Excel puede leer el año como 2006.0
+    if anio.endswith(".0"):
+        anio = anio[:-2]
+
+    estado = limpiar_texto(
+        valor_columna(row, ["ESTADO", "Estado", "estado"])
+    ).upper()
+
+    sin_registros = estado == "SIN_REGISTROS"
 
     excursiones.append({
         "id": id_excursion,
         "fecha": fecha,
         "anio": anio,
+        "sin_registros": sin_registros,
         "nombre": nombre,
         "poblacion": poblacion,
         "provincia": provincia,
@@ -602,9 +615,19 @@ function pintar() {{
     const bounds = [];
 
     datos.forEach(e => {{
-        const marker = L.marker([e.lat, e.lon], {{icon: iconoElaios}})
-            .bindPopup(popupHtml(e), {{maxWidth: 420}})
-            .bindTooltip(e.nombre);
+
+        // Los años sin registros se conservan en el histórico,
+        // pero no generan un punto ficticio en el mapa
+        if (e.sin_registros) {{
+            return;
+        }}
+
+        const marker = L.marker(
+            [e.lat, e.lon],
+            {{icon: iconoElaios}}
+        )
+        .bindPopup(popupHtml(e), {{maxWidth: 420}})
+        .bindTooltip(e.nombre);
 
         marker.addTo(markersLayer);
         markerById[e.id] = marker;
@@ -617,9 +640,20 @@ function pintar() {{
         map.setView([41.65, -0.9], 7);
     }}
 
-    document.getElementById("contador").textContent = `${{datos.length}} excursiones visibles`;
+    const excursionesReales = datos.filter(e => !e.sin_registros);
 
-    document.getElementById("lista").innerHTML = datos.map(e => `
+    if (datos.length > 0 && excursionesReales.length === 0) {{
+        document.getElementById("contador").innerHTML =
+            "No hay excursiones registradas para este año";
+    }} else {{
+        document.getElementById("contador").textContent =
+            `${{excursionesReales.length}} excursiones visibles`;
+    }}
+
+    document.getElementById("contador").textContent =
+        `${{excursionesReales.length}} excursiones visibles`;
+
+    document.getElementById("lista").innerHTML = excursionesReales.map(e => `
         <div class="list-item" data-id="${{e.id}}">
             <strong>${{e.nombre}}</strong><br>
             <small>${{e.fecha || ""}} · ${{e.poblacion || ""}} </small>
@@ -644,7 +678,11 @@ function inicializar() {{
     fillSelect("filtro-dificultad", unique(excursiones.map(e => e.dificultad)));
     fillSelect("filtro-logo", unique(excursiones.flatMap(e => (e.logos || []).map(basename))));
 
-    document.getElementById("stat-exc").textContent = excursiones.length;
+    const excursionesRealesTotal =
+        excursiones.filter(e => !e.sin_registros);
+
+    document.getElementById("stat-exc").textContent =
+        excursionesRealesTotal.length;
     document.getElementById("stat-anios").textContent = unique(excursiones.map(e => e.anio)).length;
     document.getElementById("stat-prov").textContent = unique(excursiones.map(e => e.provincia)).length;
 
