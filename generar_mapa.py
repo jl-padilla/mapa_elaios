@@ -1599,7 +1599,15 @@ function pintar() {{
             .value;
 
 
-        if (anioSeleccionado) {{
+        const anioSinRegistros =
+            anioSeleccionado &&
+            excursiones.some(
+                e =>
+                    e.anio == anioSeleccionado &&
+                    e.sin_registros
+            );
+
+        if (anioSinRegistros) {{
 
             mensaje.innerHTML = `
 
