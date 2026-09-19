@@ -1795,13 +1795,17 @@ function inicializar() {{
     // Incluye también años SIN_REGISTROS
     // ----------------------------------------------------
 
+    const aniosOrdenados = [
+        ...new Set(
+            excursiones
+                .map(e => e.anio)
+                .filter(Boolean)
+        )
+    ].sort((a, b) => Number(b) - Number(a));
+
     fillSelect(
         "filtro-anio",
-        unique(
-            excursiones.map(
-                e => e.anio
-            )
-        ).sort((a, b) => Number(b) - Number(a))
+        aniosOrdenados
     );
 
 
