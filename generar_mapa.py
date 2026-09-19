@@ -1801,7 +1801,7 @@ function inicializar() {{
             excursiones.map(
                 e => e.anio
             )
-        )
+        ).sort((a, b) => Number(b) - Number(a))
     );
 
 
