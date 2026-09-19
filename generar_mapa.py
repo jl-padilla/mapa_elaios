@@ -265,10 +265,19 @@ for indice, row in df.iterrows():
         )
     )
 
-    id_excursion = (
+    # ID usado para localizar la carpeta de fotos (mantiene compatibilidad)
+    id_fotos = (
         id_excel
         if id_excel
         else construir_id(fecha)
+    )
+
+    # ID único para el mapa. Si dos excursiones comparten fecha,
+    # evitamos que una sustituya a la otra en markerById.
+    id_excursion = (
+        id_excel
+        if id_excel
+        else f"{construir_id(fecha)}_{indice + 2}"
     )
 
     # --------------------------------------------------------
@@ -397,7 +406,7 @@ for indice, row in df.iterrows():
         "lat": lat,
         "lon": lon,
         "logos": obtener_logos(logos_excel),
-        "fotos": obtener_fotos(id_excursion),
+        "fotos": obtener_fotos(id_fotos),
     })
 
 
@@ -1233,6 +1242,21 @@ function nombreBonitoLogo(path) {{
 }}
 
 
+function formatearFecha(fecha) {{
+
+    if (!fecha) return "-";
+
+    const partes = fecha.split("_");
+
+    if (partes.length === 3) {{
+        return `${{partes[2]}}-${{partes[1]}}-${{partes[0]}}`;
+    }}
+
+    return fecha;
+
+}}
+
+
 function fillSelect(id, values) {{
 
     const sel =
@@ -1326,7 +1350,7 @@ function popupHtml(e) {{
 
             <div class="meta">
                 <b>Fecha:</b>
-                ${{e.fecha || "-"}}
+                ${{formatearFecha(e.fecha)}}
             </div>
 
             <div class="meta">
@@ -1491,6 +1515,28 @@ function pintar() {{
 
 
     // ----------------------------------------------------
+    // COORDENADAS REPETIDAS
+    // ----------------------------------------------------
+    // Si varias excursiones tienen exactamente el mismo punto,
+    // las separamos SOLO visualmente unos metros alrededor del
+    // punto real. Así todos los marcadores quedan accesibles.
+
+    const gruposCoordenadas = {{}};
+
+    excursionesReales.forEach(e => {{
+        if (e.lat === null || e.lon === null) return;
+
+        const clave = `${{e.lat.toFixed(6)}},${{e.lon.toFixed(6)}}`;
+
+        if (!gruposCoordenadas[clave]) {{
+            gruposCoordenadas[clave] = [];
+        }}
+
+        gruposCoordenadas[clave].push(e.id);
+    }});
+
+
+    // ----------------------------------------------------
     // CREAR MARCADORES
     // ----------------------------------------------------
 
@@ -1505,10 +1551,25 @@ function pintar() {{
             return;
         }}
 
+        let latVisual = e.lat;
+        let lonVisual = e.lon;
+
+        const clave = `${{e.lat.toFixed(6)}},${{e.lon.toFixed(6)}}`;
+        const grupo = gruposCoordenadas[clave] || [];
+
+        if (grupo.length > 1) {{
+            const posicion = grupo.indexOf(e.id);
+            const angulo = (2 * Math.PI * posicion) / grupo.length;
+            const radio = 0.00018;
+
+            latVisual = e.lat + Math.sin(angulo) * radio;
+            lonVisual = e.lon + Math.cos(angulo) * radio;
+        }}
+
 
         const marker =
             L.marker(
-                [e.lat, e.lon],
+                [latVisual, lonVisual],
                 {{
                     icon: iconoElaios
                 }}
@@ -1536,7 +1597,7 @@ function pintar() {{
 
 
         bounds.push(
-            [e.lat, e.lon]
+            [latVisual, lonVisual]
         );
 
     }});
@@ -1673,7 +1734,7 @@ function pintar() {{
                 <br>
 
                 <small>
-                    ${{e.fecha || ""}}
+                    ${{formatearFecha(e.fecha)}}
                     ·
                     ${{e.poblacion || ""}}
                 </small>
