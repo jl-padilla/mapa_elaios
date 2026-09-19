@@ -1584,10 +1584,8 @@ function pintar() {{
     mensaje.innerHTML = "";
 
 
-    if (
-        datos.length > 0 &&
-        excursionesReales.length === 0
-    ) {{
+        if (excursionesReales.length === 0
+        ) {{
 
         contador.textContent =
             "0 excursiones visibles";
