@@ -19,6 +19,10 @@ FOTOS_DIR = ASSETS_DIR / "excursiones"
 # GitHub Pages busca index.html automáticamente
 OUTPUT_HTML = BASE_DIR / "index.html"
 
+# Enlaces de ayuda y autoría. Sustituye estas dos URLs por las tuyas.
+VIDEO_AYUDA_URL = "https://www.youtube.com/"
+LINKEDIN_URL = "https://www.linkedin.com/"
+
 EXTENSIONES_IMAGEN = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
@@ -265,20 +269,13 @@ for indice, row in df.iterrows():
         )
     )
 
-    # ID usado para localizar la carpeta de fotos (mantiene compatibilidad)
-    id_fotos = (
-        id_excel
-        if id_excel
-        else construir_id(fecha)
-    )
+    # ID único para la interfaz del mapa.
+    # La fecha sola no basta porque puede haber varias excursiones el mismo día.
+    id_base = id_excel if id_excel else construir_id(fecha)
+    id_excursion = f"{id_base}_{indice + 2}"
 
-    # ID único para el mapa. Si dos excursiones comparten fecha,
-    # evitamos que una sustituya a la otra en markerById.
-    id_excursion = (
-        id_excel
-        if id_excel
-        else f"{construir_id(fecha)}_{indice + 2}"
-    )
+    # Las carpetas de fotos existentes siguen usando el ID original/fecha.
+    id_fotos = id_base
 
     # --------------------------------------------------------
     # TRACK
@@ -584,6 +581,45 @@ body {{
 
 
 .entidad-contacto a:hover {{
+    text-decoration: underline;
+}}
+
+
+.btn-ayuda-video {{
+    display: inline-block;
+    margin-top: 8px;
+    padding: 7px 12px;
+    background: #0f3d2e;
+    color: white !important;
+    text-decoration: none !important;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}}
+
+.btn-ayuda-video:hover {{
+    transform: translateY(-1px);
+    opacity: 0.9;
+}}
+
+.firma-mapa {{
+    text-align: center;
+    font-size: 11px;
+    color: #888;
+    padding: 7px 10px 9px;
+    background: #f7f7f7;
+}}
+
+.firma-mapa a {{
+    color: #777;
+    text-decoration: none;
+    font-weight: 600;
+}}
+
+.firma-mapa a:hover {{
+    color: #444;
     text-decoration: underline;
 }}
 
@@ -1001,6 +1037,17 @@ button {{
             🏳️‍🌈 Asociación Deportiva LGTBI+
         </div>
 
+        <div>
+            <a
+                href="{VIDEO_AYUDA_URL}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-ayuda-video"
+            >
+                ▶ Cómo usar el mapa
+            </a>
+        </div>
+
     </div>
 
 </header>
@@ -1142,6 +1189,18 @@ button {{
 
 </div>
 
+<div class="firma-mapa">
+    Hecho con ❤️ por
+    <a
+        href="{LINKEDIN_URL}"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        José Luis Padilla
+    </a>
+    · con la ayuda de ChatGPT
+</div>
+
 
 <script>
 
@@ -1246,7 +1305,7 @@ function formatearFecha(fecha) {{
 
     if (!fecha) return "-";
 
-    const partes = fecha.split("_");
+    const partes = String(fecha).split("_");
 
     if (partes.length === 3) {{
         return `${{partes[2]}}-${{partes[1]}}-${{partes[0]}}`;
@@ -1515,28 +1574,6 @@ function pintar() {{
 
 
     // ----------------------------------------------------
-    // COORDENADAS REPETIDAS
-    // ----------------------------------------------------
-    // Si varias excursiones tienen exactamente el mismo punto,
-    // las separamos SOLO visualmente unos metros alrededor del
-    // punto real. Así todos los marcadores quedan accesibles.
-
-    const gruposCoordenadas = {{}};
-
-    excursionesReales.forEach(e => {{
-        if (e.lat === null || e.lon === null) return;
-
-        const clave = `${{e.lat.toFixed(6)}},${{e.lon.toFixed(6)}}`;
-
-        if (!gruposCoordenadas[clave]) {{
-            gruposCoordenadas[clave] = [];
-        }}
-
-        gruposCoordenadas[clave].push(e.id);
-    }});
-
-
-    // ----------------------------------------------------
     // CREAR MARCADORES
     // ----------------------------------------------------
 
@@ -1551,25 +1588,10 @@ function pintar() {{
             return;
         }}
 
-        let latVisual = e.lat;
-        let lonVisual = e.lon;
-
-        const clave = `${{e.lat.toFixed(6)}},${{e.lon.toFixed(6)}}`;
-        const grupo = gruposCoordenadas[clave] || [];
-
-        if (grupo.length > 1) {{
-            const posicion = grupo.indexOf(e.id);
-            const angulo = (2 * Math.PI * posicion) / grupo.length;
-            const radio = 0.00018;
-
-            latVisual = e.lat + Math.sin(angulo) * radio;
-            lonVisual = e.lon + Math.cos(angulo) * radio;
-        }}
-
 
         const marker =
             L.marker(
-                [latVisual, lonVisual],
+                [e.lat, e.lon],
                 {{
                     icon: iconoElaios
                 }}
@@ -1597,7 +1619,7 @@ function pintar() {{
 
 
         bounds.push(
-            [latVisual, lonVisual]
+            [e.lat, e.lon]
         );
 
     }});
