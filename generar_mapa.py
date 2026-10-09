@@ -21,7 +21,7 @@ OUTPUT_HTML = BASE_DIR / "index.html"
 
 # Enlaces de ayuda y autoría. Sustituye estas dos URLs por las tuyas.
 VIDEO_AYUDA_URL = "https://youtu.be/zXz19Roq0qY/"
-LINKEDIN_URL = "https:/www.linkedin.com/in/joseluispadillavillanova/"
+LINKEDIN_URL = "https:/www.linkedin.com/in/joseluispadillavillanova"
 
 EXTENSIONES_IMAGEN = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
