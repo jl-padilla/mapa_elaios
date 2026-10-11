@@ -915,6 +915,145 @@ function fillSelect(id, values) {
 
 
 // ========================================================
+// FILTROS DEPENDIENTES / EN CASCADA
+// El año actúa como filtro principal. El resto de filtros
+// se recalculan según las opciones que siguen disponibles.
+// ========================================================
+
+function actualizarSelect(id, valores, valorActual) {
+
+    const sel = document.getElementById(id);
+
+    const textosTodos = {
+        "filtro-provincia": "Todas",
+        "filtro-tipo": "Todos",
+        "filtro-dificultad": "Todas",
+        "filtro-logo": "Todas"
+    };
+
+    sel.innerHTML = "";
+
+    const opcionTodos = document.createElement("option");
+    opcionTodos.value = "";
+    opcionTodos.textContent = textosTodos[id] || "Todos";
+    sel.appendChild(opcionTodos);
+
+    valores.forEach(v => {
+
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent =
+            id === "filtro-logo"
+            ? v.replaceAll("_", " ").toUpperCase()
+            : v;
+
+        sel.appendChild(opt);
+
+    });
+
+    // Si el valor seleccionado sigue existiendo, lo conservamos.
+    // Si ya no es compatible con los otros filtros, se limpia.
+    if (valorActual && valores.includes(valorActual)) {
+        sel.value = valorActual;
+    } else {
+        sel.value = "";
+    }
+}
+
+
+function actualizarFiltrosDisponibles() {
+
+    const anio = document.getElementById("filtro-anio").value;
+    let provincia = document.getElementById("filtro-provincia").value;
+    let tipo = document.getElementById("filtro-tipo").value;
+    let dificultad = document.getElementById("filtro-dificultad").value;
+    let logo = document.getElementById("filtro-logo").value;
+
+    const reales = excursiones.filter(e => !e.sin_registros);
+
+    // Provincia: depende del año y de los demás filtros activos.
+    const datosProvincia = reales.filter(e =>
+        (!anio || e.anio == anio) &&
+        (!tipo || e.tipo == tipo) &&
+        (!dificultad || e.dificultad == dificultad) &&
+        (!logo || (e.logos || []).map(basename).includes(logo))
+    );
+
+    const provinciasDisponibles = unique(
+        datosProvincia.map(e => e.provincia)
+    );
+
+    actualizarSelect(
+        "filtro-provincia",
+        provinciasDisponibles,
+        provincia
+    );
+
+    provincia = document.getElementById("filtro-provincia").value;
+
+    // Tipo: depende del año, provincia y demás filtros activos.
+    const datosTipo = reales.filter(e =>
+        (!anio || e.anio == anio) &&
+        (!provincia || e.provincia == provincia) &&
+        (!dificultad || e.dificultad == dificultad) &&
+        (!logo || (e.logos || []).map(basename).includes(logo))
+    );
+
+    const tiposDisponibles = unique(
+        datosTipo.map(e => e.tipo)
+    );
+
+    actualizarSelect(
+        "filtro-tipo",
+        tiposDisponibles,
+        tipo
+    );
+
+    tipo = document.getElementById("filtro-tipo").value;
+
+    // Dificultad: depende del año, provincia, tipo y asociación.
+    const datosDificultad = reales.filter(e =>
+        (!anio || e.anio == anio) &&
+        (!provincia || e.provincia == provincia) &&
+        (!tipo || e.tipo == tipo) &&
+        (!logo || (e.logos || []).map(basename).includes(logo))
+    );
+
+    const dificultadesDisponibles = unique(
+        datosDificultad.map(e => e.dificultad)
+    );
+
+    actualizarSelect(
+        "filtro-dificultad",
+        dificultadesDisponibles,
+        dificultad
+    );
+
+    dificultad = document.getElementById("filtro-dificultad").value;
+
+    // Asociación: depende del año, provincia, tipo y dificultad.
+    const datosLogo = reales.filter(e =>
+        (!anio || e.anio == anio) &&
+        (!provincia || e.provincia == provincia) &&
+        (!tipo || e.tipo == tipo) &&
+        (!dificultad || e.dificultad == dificultad)
+    );
+
+    const logosDisponibles = unique(
+        datosLogo.flatMap(
+            e => (e.logos || []).map(basename)
+        )
+    );
+
+    actualizarSelect(
+        "filtro-logo",
+        logosDisponibles,
+        logo
+    );
+}
+
+
+// ========================================================
 // POPUP
 // ========================================================
 
@@ -1519,7 +1658,10 @@ function inicializar() {
         .getElementById(id)
         .addEventListener(
             "input",
-            pintar
+            () => {
+                actualizarFiltrosDisponibles();
+                pintar();
+            }
         )
 
     );
@@ -1571,6 +1713,7 @@ function inicializar() {
     // PRIMER DIBUJADO
     // ----------------------------------------------------
 
+    actualizarFiltrosDisponibles();
     pintar();
 
 }
